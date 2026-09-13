@@ -1,5 +1,7 @@
 # idira-audit-clj
 
+> **Status:** Active — maintained. Synthetic fixtures only, no real estates. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
+
 Zero-dependency Identity & PAM audit CLI in Babashka/Clojure. Queries a
 CyberArk/Idira-style REST API (SCIM users/groups, tokens, MFA policy) and
 emits deterministic EDN/JSON audit reports: orphaned privileged accounts,
