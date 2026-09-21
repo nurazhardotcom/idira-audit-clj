@@ -2,6 +2,18 @@
 
 > **Status:** Active — maintained. Synthetic fixtures only, no real estates. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
 
+> **Enterprise IAM/PAM & Policy-as-Code audit component.**
+> Enforces least-privilege access, automated compliance checks, and
+> privileged session governance for cloud and enterprise directory platforms.
+
+* **Target environment:** Enterprise hybrid / CyberArk Vault & Conjur /
+  Active Directory (SCIM-shaped mock API built in; point at any
+  SCIM/OAuth2 endpoint for live use).
+* **Regulatory focus:** MAS TRM / SG PDPA compliance-as-code.
+* **Core function:** Replaces manual privilege auditing and risky IAM drift
+  with deterministic, version-controlled rule evaluation
+  (`src/idira_audit/rules.clj` — pure, no I/O).
+
 Zero-dependency Identity & PAM audit CLI in Babashka/Clojure. Queries a
 CyberArk/Idira-style REST API (SCIM users/groups, tokens, MFA policy) and
 emits deterministic EDN/JSON audit reports: orphaned privileged accounts,
@@ -71,3 +83,27 @@ curl -sL <graalvm-ce-linux-amd64.tar.gz> | tar -xz -C ~/.local
 
 `bb` itself is already a GraalVM binary, so `bb -m idira-audit.main …`
 starts in milliseconds today.
+
+## Automated testing
+
+```bash
+bb test          # 11 tests / 34 assertions (rules, policy, HTTP integration)
+bb audit-demo    # end-to-end audit of the built-in mock API (exactly 5 findings)
+```
+
+Every rule in `rules.clj` is asserted exactly in tests — the 5 fixture
+findings table above is the executable contract, not documentation drift.
+
+## CI usage
+
+```yaml
+- run: bb test
+- run: bb audit-demo
+```
+
+Both steps exit non-zero on failure, so the deploy job never runs on a
+broken audit.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
