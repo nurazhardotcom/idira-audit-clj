@@ -2,6 +2,8 @@
 
 > **Status:** Active — maintained. Synthetic fixtures only, no real estates. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
 
+[![CI](https://github.com/nurazhardotcom/idira-audit-clj/actions/workflows/ci.yml/badge.svg)](https://github.com/nurazhardotcom/idira-audit-clj/actions)
+
 > **Enterprise IAM/PAM & Policy-as-Code audit component.**
 > Enforces least-privilege access, automated compliance checks, and
 > privileged session governance for cloud and enterprise directory platforms.
@@ -22,10 +24,11 @@ dormant privilege, un-vaulted accounts, missing MFA, stale tokens.
 > **Scope, stated plainly:** this audits a **shape-compatible mock API**
 > (built in) or any SCIM/OAuth2 endpoint you point it at. There is **no
 > CyberArk integration and no affiliation with CyberArk** — "Idira-style"
-> means the endpoint shapes, not a partnership. The GraalVM single-binary
-> build is a roadmap item; today it runs on `bb` (itself a GraalVM binary,
-> so startup is already milliseconds). AI disclosure: see
-> [AI_DISCLOSURE.md](./AI_DISCLOSURE.md).
+> means the endpoint shapes, not a partnership. A standalone GraalVM
+> single-binary build was evaluated and **deferred** (see
+> [Native binary](#native-binary-deferred-by-decision)); it runs on `bb`
+> (itself a GraalVM binary, so startup is already milliseconds).
+> AI disclosure: see [AI_DISCLOSURE.md](./AI_DISCLOSURE.md).
 
 ## Run (needs only `bb`, no JVM install dance, no deps to fetch)
 
@@ -69,20 +72,23 @@ bb -m idira-audit.main audit --base-url https://idira.example \
 | 4 | `missing-mfa` (medium) | `analyst-nomfa` — no MFA |
 | 5 | `stale-token` (medium) | `tok-stale` — 200d old, 180d TTL |
 
-## Native binary (later step — no GraalVM on this box yet)
+## Native binary (deferred by decision)
 
-Namespaces avoid reflection, dynamic classloading, and non-`java.base`
-modules, so the audit path (`rules`/`policy`/`scim`/`auth`) is
-`native-image`-safe. When GraalVM is available (userspace install, no sudo):
+**Decision (2026-09-22):** standalone GraalVM `native-image` compilation
+is **deferred** — Babashka already delivers sub-millisecond startup for
+this CLI, so a separate native binary buys nothing today.
 
-```bash
-curl -sL <graalvm-ce-linux-amd64.tar.gz> | tar -xz -C ~/.local
-~/.local/graalvm-*/bin/gu install native-image
-# then compile the uberscript
-```
+Rationale:
 
-`bb` itself is already a GraalVM binary, so `bb -m idira-audit.main …`
-starts in milliseconds today.
+* `bb` is itself a GraalVM binary; `bb -m idira-audit.main …` starts in
+  milliseconds with zero install friction (one static binary, no JVM).
+* The audit path (`rules`/`policy`/`scim`/`auth`) stays `native-image`-safe
+  by construction — no reflection, no dynamic classloading, no non-
+  `java.base` modules — so the option can be revisited without rework.
+* `bb check-native` continues to report GraalVM readiness as a guardrail.
+
+Revisit only if a dependency-free single-file distribution (no `bb`
+prerequisite) becomes a hard requirement.
 
 ## Automated testing
 
@@ -95,6 +101,9 @@ Every rule in `rules.clj` is asserted exactly in tests — the 5 fixture
 findings table above is the executable contract, not documentation drift.
 
 ## CI usage
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+runs on every push to `main` and every pull request:
 
 ```yaml
 - run: bb test
