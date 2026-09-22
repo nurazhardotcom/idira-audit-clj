@@ -1,0 +1,31 @@
+# GitHub Actions CI for idira-audit-clj.
+# Runs the clojure.test suite plus the end-to-end mock audit asserting
+# the exact five-findings contract, on every push and pull request.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Babashka
+        run: |
+          curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
+          chmod +x install
+          sudo ./install
+
+      - name: Run test suite
+        run: bb test
+
+      - name: Run audit demo (five-findings contract)
+        run: bb audit-demo
