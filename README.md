@@ -11,7 +11,7 @@
 * **Target environment:** Enterprise hybrid / CyberArk Vault & Conjur /
   Active Directory (SCIM-shaped mock API built in; point at any
   SCIM/OAuth2 endpoint for live use).
-* **Regulatory focus:** MAS TRM / SG PDPA compliance-as-code.
+* **Regulatory focus:** SG PDPA compliance-as-code.
 * **Core function:** Replaces manual privilege auditing and risky IAM drift
   with deterministic, version-controlled rule evaluation
   (`src/idira_audit/rules.clj` — pure, no I/O).
