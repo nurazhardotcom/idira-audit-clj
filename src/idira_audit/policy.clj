@@ -1,7 +1,6 @@
 (ns idira-audit.policy
   "Policy evaluation: does each account meet the MFA / device-posture
-   policy? Pure fns — same determinism contract as idira-audit.rules."
-  (:require [clojure.string :as str]))
+   policy? Pure fns — same determinism contract as idira-audit.rules.")
 
 (def assurance-rank
   "Ordered assurance levels; higher index = stronger."

@@ -33,7 +33,7 @@ dormant privilege, un-vaulted accounts, missing MFA, stale tokens.
 ## Run (needs only `bb`, no JVM install dance, no deps to fetch)
 
 ```bash
-bb test                              # 11 tests / 34 assertions
+bb test                              # 14 tests / 45 assertions
 bb audit-demo                        # audit the built-in mock API (deterministic)
 bb -m idira-audit.main audit --mock --format json
 bb -m idira-audit.main audit --idsvc # audit sibling ../idsvc via /inventory
@@ -54,6 +54,8 @@ bb -m idira-audit.main audit --base-url https://idira.example \
 
 - `src/idira_audit/rules.clj` — pure rule engine,
   `(audit-users estate now)` → findings. No I/O; caller passes the clock.
+  Fail-closed on gaps: never-logged-in privileged accounts and tokens
+  without `:created` are findings, never silent passes.
 - `src/idira_audit/policy.clj` — MFA / assurance / device-posture evaluation.
 - `src/idira_audit/auth.clj` — OAuth2 client-credentials or static API token.
 - `src/idira_audit/scim.clj` — fetch + normalize `/Users /Groups /Tokens /Policies`.
@@ -71,6 +73,10 @@ bb -m idira-audit.main audit --base-url https://idira.example \
 | 3 | `unvaulted-privileged` (high) | `svc-unvaulted` — not vault-managed |
 | 4 | `missing-mfa` (medium) | `analyst-nomfa` — no MFA |
 | 5 | `stale-token` (medium) | `tok-stale` — 200d old, 180d TTL |
+
+A sixth rule, `never-logged-in-privileged` (high), covers privileged
+accounts with no recorded login — exercised with a synthetic estate in
+`rules_test.clj`; the 5-finding mock fixture intentionally has none.
 
 ## Native binary (deferred by decision)
 
@@ -93,7 +99,7 @@ prerequisite) becomes a hard requirement.
 ## Automated testing
 
 ```bash
-bb test          # 11 tests / 34 assertions (rules, policy, HTTP integration)
+bb test          # 14 tests / 45 assertions (rules, policy, HTTP integration)
 bb audit-demo    # end-to-end audit of the built-in mock API (exactly 5 findings)
 ```
 
