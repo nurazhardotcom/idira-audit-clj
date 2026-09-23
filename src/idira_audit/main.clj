@@ -82,11 +82,11 @@
     @(promise)))
 
 (defn- cmd-check-native []
-  (let [has-ni (try (do (.. Runtime getRuntime
-                            (exec (into-array String ["native-image" "--version"]))
-                            waitFor)
-                        true)
-                      (catch Exception _ false))]
+  (let [has-ni (try (.. Runtime getRuntime
+                        (exec (into-array String ["native-image" "--version"]))
+                        waitFor)
+                    true
+                    (catch Exception _ false))]
     (prn {:babashka (System/getProperty "babashka.version")
           :java (System/getProperty "java.version")
           :native-image (boolean has-ni)
