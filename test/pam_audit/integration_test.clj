@@ -1,9 +1,9 @@
-(ns idira-audit.integration-test
+(ns pam-audit.integration-test
   (:require [clojure.test :refer [deftest is testing use-fixtures]]
-            [idira-audit.auth :as auth]
-            [idira-audit.mock :as mock]
-            [idira-audit.rules :as rules]
-            [idira-audit.scim :as scim]))
+            [pam-audit.auth :as auth]
+            [pam-audit.mock :as mock]
+            [pam-audit.rules :as rules]
+            [pam-audit.scim :as scim]))
 
 (def ^:dynamic *base* nil)
 

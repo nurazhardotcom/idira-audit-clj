@@ -1,18 +1,18 @@
-(ns idira-audit.main
+(ns pam-audit.main
   "CLI entrypoint.
    Usage:
-     bb -m idira-audit.main audit --mock [--format edn|json]
-     bb -m idira-audit.main audit --base-url URL (--api-token T | --token-url U --client-id I --client-secret S)
-     bb -m idira-audit.main audit --idsvc [--idsvc-url http://127.0.0.1:8081]
-     bb -m idira-audit.main mock-server [--port 8899]
-     bb -m idira-audit.main check-native"
+     bb -m pam-audit.main audit --mock [--format edn|json]
+     bb -m pam-audit.main audit --base-url URL (--api-token T | --token-url U --client-id I --client-secret S)
+     bb -m pam-audit.main audit --idsvc [--idsvc-url http://127.0.0.1:8081]
+     bb -m pam-audit.main mock-server [--port 8899]
+     bb -m pam-audit.main check-native"
   (:require [cheshire.core :as json]
             [clojure.string :as str]
-            [idira-audit.auth :as auth]
-            [idira-audit.idsvc :as idsvc]
-            [idira-audit.mock :as mock]
-            [idira-audit.rules :as rules]
-            [idira-audit.scim :as scim]))
+            [pam-audit.auth :as auth]
+            [pam-audit.idsvc :as idsvc]
+            [pam-audit.mock :as mock]
+            [pam-audit.rules :as rules]
+            [pam-audit.scim :as scim]))
 
 (defn- now-epoch [] (quot (System/currentTimeMillis) 1000))
 
@@ -78,7 +78,7 @@
 
 (defn- cmd-mock-server [{:keys [port]}]
   (let [started (mock/start! :port (if port (parse-long port) 8899))]
-    (println "mock Idira API on" (:base-url started) "(Ctrl-C to stop)")
+    (println "mock PAM API on" (:base-url started) "(Ctrl-C to stop)")
     @(promise)))
 
 (defn- cmd-check-native []
@@ -100,6 +100,6 @@
       :audit (cmd-audit opts)
       :mock-server (cmd-mock-server opts)
       :check-native (cmd-check-native)
-      (do (println (:doc (meta #'idira-audit.main/-main)
-                         "Usage: bb -m idira-audit.main <audit|mock-server|check-native> [opts]"))
+      (do (println (:doc (meta #'pam-audit.main/-main)
+                         "Usage: bb -m pam-audit.main <audit|mock-server|check-native> [opts]"))
           (System/exit 2)))))

@@ -1,5 +1,5 @@
-(ns idira-audit.mock
-  "In-process stub of a CyberArk/Idira-style REST API, built only on
+(ns pam-audit.mock
+  "In-process stub of a SCIM-shaped PAM REST API, built only on
    JDK java.net.ServerSocket (java.base — no extra modules, no deps).
    Serves a deterministic estate with exactly 5 expected findings
    (see estate-fixture), so tests and demos assert exact counts."

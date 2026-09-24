@@ -1,4 +1,4 @@
-# GitHub Actions CI for idira-audit-clj.
+# GitHub Actions CI for pam-audit-clj.
 # Runs the clojure.test suite plus the end-to-end mock audit asserting
 # the exact five-findings contract, on every push and pull request.
 

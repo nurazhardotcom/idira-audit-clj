@@ -1,4 +1,4 @@
-(ns idira-audit.rules
+(ns pam-audit.rules
   "Pure rule engine. Every rule is a pure fn over plain maps:
    users, groups, tokens, policies. No I/O, no clock reads inside
    rules — callers pass `now` (epoch seconds) so results are

@@ -1,9 +1,9 @@
-(ns idira-audit.idsvc
+(ns pam-audit.idsvc
   "Bridge: audit the sibling idsvc service (../idsvc) by reading its
    /inventory endpoint and translating it into the estate shape the
    rule engine consumes. idsvc already enforces sponsor binding, so a
    clean report here is itself evidence (cf. T2)."
-  (:require [idira-audit.scim :as scim]))
+  (:require [pam-audit.scim :as scim]))
 
 (defn fetch-inventory
   "GET /inventory from a running idsvc. No auth required (local lab)."

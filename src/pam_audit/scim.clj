@@ -1,7 +1,7 @@
-(ns idira-audit.scim
+(ns pam-audit.scim
   "SCIM-ish fetch layer: /Users, /Groups, /Tokens, /Policies.
    Plain GET + Bearer auth via bb's built-in http client. Response
-   shapes are normalized to the maps idira-audit.rules expects — the
+   shapes are normalized to the maps pam-audit.rules expects — the
    normalization fns are pure and unit-tested without HTTP."
   (:require [babashka.http-client :as http]
             [cheshire.core :as json]))

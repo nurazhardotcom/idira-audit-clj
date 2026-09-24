@@ -1,7 +1,7 @@
-(ns idira-audit.policy-test
+(ns pam-audit.policy-test
   (:require [clojure.test :refer [deftest is]]
-            [idira-audit.mock :as mock]
-            [idira-audit.policy :as policy]))
+            [pam-audit.mock :as mock]
+            [pam-audit.policy :as policy]))
 
 (def users-by-id
   (into {} (map (juxt :id identity) (:users mock/estate-fixture))))

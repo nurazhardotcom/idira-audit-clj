@@ -1,6 +1,6 @@
-(ns idira-audit.policy
+(ns pam-audit.policy
   "Policy evaluation: does each account meet the MFA / device-posture
-   policy? Pure fns — same determinism contract as idira-audit.rules.")
+   policy? Pure fns — same determinism contract as pam-audit.rules.")
 
 (def assurance-rank
   "Ordered assurance levels; higher index = stronger."

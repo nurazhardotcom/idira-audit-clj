@@ -1,7 +1,7 @@
-(ns idira-audit.rules-test
+(ns pam-audit.rules-test
   (:require [clojure.test :refer [deftest is testing]]
-            [idira-audit.mock :as mock]
-            [idira-audit.rules :as rules]))
+            [pam-audit.mock :as mock]
+            [pam-audit.rules :as rules]))
 
 (def estate mock/estate-fixture)
 (def now mock/now-fixture)

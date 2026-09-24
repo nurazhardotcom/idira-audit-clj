@@ -1,33 +1,32 @@
-# idira-audit-clj
+# pam-audit-clj
 
 > **Status:** Active — maintained. Synthetic fixtures only, no real estates. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
 
-[![CI](https://github.com/nurazhardotcom/idira-audit-clj/actions/workflows/ci.yml/badge.svg)](https://github.com/nurazhardotcom/idira-audit-clj/actions)
+[![CI](https://github.com/nurazhardotcom/pam-audit-clj/actions/workflows/ci.yml/badge.svg)](https://github.com/nurazhardotcom/pam-audit-clj/actions)
 
 > **Enterprise IAM/PAM & Policy-as-Code audit component.**
 > Enforces least-privilege access, automated compliance checks, and
 > privileged session governance for cloud and enterprise directory platforms.
 
-* **Target environment:** Enterprise hybrid / CyberArk Vault & Conjur /
+* **Target environment:** Enterprise hybrid / vault-managed PAM &
   Active Directory (SCIM-shaped mock API built in; point at any
   SCIM/OAuth2 endpoint for live use).
 * **Regulatory focus:** SG PDPA compliance-as-code.
 * **Core function:** Replaces manual privilege auditing and risky IAM drift
   with deterministic, version-controlled rule evaluation
-  (`src/idira_audit/rules.clj` — pure, no I/O).
+  (`src/pam_audit/rules.clj` — pure, no I/O).
 
 Zero-dependency Identity & PAM audit CLI in Babashka/Clojure. Queries a
-CyberArk/Idira-style REST API (SCIM users/groups, tokens, MFA policy) and
+SCIM-shaped PAM REST API (users/groups, tokens, MFA policy) and
 emits deterministic EDN/JSON audit reports: orphaned privileged accounts,
 dormant privilege, un-vaulted accounts, missing MFA, stale tokens.
 
 > **Scope, stated plainly:** this audits a **shape-compatible mock API**
-> (built in) or any SCIM/OAuth2 endpoint you point it at. There is **no
-> CyberArk integration and no affiliation with CyberArk** — "Idira-style"
-> means the endpoint shapes, not a partnership. A standalone GraalVM
-> single-binary build was evaluated and **deferred** (see
-> [Native binary](#native-binary-deferred-by-decision)); it runs on `bb`
-> (itself a GraalVM binary, so startup is already milliseconds).
+> (built in) or any SCIM/OAuth2 endpoint you point it at. Endpoint shapes
+> follow common PAM patterns (SCIM users/groups, tokens, MFA policy).
+> A standalone GraalVM single-binary build was evaluated and **deferred**
+> (see [Native binary](#native-binary-deferred-by-decision)); it runs on
+> `bb` (itself a GraalVM binary, so startup is already milliseconds).
 > AI disclosure: see [AI_DISCLOSURE.md](./AI_DISCLOSURE.md).
 
 ## Run (needs only `bb`, no JVM install dance, no deps to fetch)
@@ -35,34 +34,34 @@ dormant privilege, un-vaulted accounts, missing MFA, stale tokens.
 ```bash
 bb test                              # 14 tests / 45 assertions
 bb audit-demo                        # audit the built-in mock API (deterministic)
-bb -m idira-audit.main audit --mock --format json
-bb -m idira-audit.main audit --idsvc # audit sibling ../idsvc via /inventory
-bb -m idira-audit.main mock-server --port 8899
+bb -m pam-audit.main audit --mock --format json
+bb -m pam-audit.main audit --idsvc # audit sibling ../idsvc via /inventory
+bb -m pam-audit.main mock-server --port 8899
 bb check-native                      # GraalVM readiness report
 ```
 
 Live API:
 
 ```bash
-bb -m idira-audit.main audit --base-url https://idira.example \
-  --token-url https://idira.example/oauth2/token \
+bb -m pam-audit.main audit --base-url https://pam.example \
+  --token-url https://pam.example/oauth2/token \
   --client-id LAB --client-secret '...' --format json
 # or: --api-token '...' instead of the client-credentials trio
 ```
 
 ## Layout
 
-- `src/idira_audit/rules.clj` — pure rule engine,
+- `src/pam_audit/rules.clj` — pure rule engine,
   `(audit-users estate now)` → findings. No I/O; caller passes the clock.
   Fail-closed on gaps: never-logged-in privileged accounts and tokens
   without `:created` are findings, never silent passes.
-- `src/idira_audit/policy.clj` — MFA / assurance / device-posture evaluation.
-- `src/idira_audit/auth.clj` — OAuth2 client-credentials or static API token.
-- `src/idira_audit/scim.clj` — fetch + normalize `/Users /Groups /Tokens /Policies`.
-- `src/idira_audit/mock.clj` — stub API on JDK `ServerSocket` only; fixed clock
+- `src/pam_audit/policy.clj` — MFA / assurance / device-posture evaluation.
+- `src/pam_audit/auth.clj` — OAuth2 client-credentials or static API token.
+- `src/pam_audit/scim.clj` — fetch + normalize `/Users /Groups /Tokens /Policies`.
+- `src/pam_audit/mock.clj` — stub API on JDK `ServerSocket` only; fixed clock
   (`now-fixture`) and fixture estate with exactly 5 findings.
-- `src/idira_audit/idsvc.clj` — bridge auditing the sibling `idsvc` service.
-- `src/idira_audit/main.clj` — CLI.
+- `src/pam_audit/idsvc.clj` — bridge auditing the sibling `idsvc` service.
+- `src/pam_audit/main.clj` — CLI.
 
 ## The 5 fixture findings (asserted exactly in tests)
 
@@ -86,7 +85,7 @@ this CLI, so a separate native binary buys nothing today.
 
 Rationale:
 
-* `bb` is itself a GraalVM binary; `bb -m idira-audit.main …` starts in
+* `bb` is itself a GraalVM binary; `bb -m pam-audit.main …` starts in
   milliseconds with zero install friction (one static binary, no JVM).
 * The audit path (`rules`/`policy`/`scim`/`auth`) stays `native-image`-safe
   by construction — no reflection, no dynamic classloading, no non-

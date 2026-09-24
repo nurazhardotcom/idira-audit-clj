@@ -1,4 +1,4 @@
-(ns idira-audit.auth
+(ns pam-audit.auth
   "Token acquisition: OAuth2 client-credentials grant or a static
    ISPSS-style API token. Uses bb's built-in babashka.http-client —
    no extra deps, native-image safe."

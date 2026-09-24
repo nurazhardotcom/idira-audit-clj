@@ -1,20 +1,20 @@
 {:paths ["src" "test"]
  :tasks
  {test {:doc "Run all clojure.test suites (rules, policy, HTTP integration)"
-        :task (do (require 'idira-audit.rules-test
-                           'idira-audit.policy-test
-                           'idira-audit.integration-test)
+        :task (do (require 'pam-audit.rules-test
+                           'pam-audit.policy-test
+                           'pam-audit.integration-test)
                   (let [{:keys [fail error]}
-                        (clojure.test/run-tests 'idira-audit.rules-test
-                                                'idira-audit.policy-test
-                                                'idira-audit.integration-test)]
+                        (clojure.test/run-tests 'pam-audit.rules-test
+                                                'pam-audit.policy-test
+                                                'pam-audit.integration-test)]
                     (System/exit (if (zero? (+ fail error)) 0 1))))}
-  audit-demo {:doc "Audit the built-in mock Idira API (deterministic EDN)"
-              :requires ([idira-audit.main :as main])
+  audit-demo {:doc "Audit the built-in mock PAM API (deterministic EDN)"
+              :requires ([pam-audit.main :as main])
               :task (main/-main "audit" "--mock")}
   audit-idsvc {:doc "Audit the sibling idsvc via its /inventory endpoint"
-               :requires ([idira-audit.main :as main])
+               :requires ([pam-audit.main :as main])
                :task (main/-main "audit" "--idsvc")}
   check-native {:doc "Report GraalVM native-image readiness"
-                :requires ([idira-audit.main :as main])
+                :requires ([pam-audit.main :as main])
                 :task (main/-main "check-native")}}}
