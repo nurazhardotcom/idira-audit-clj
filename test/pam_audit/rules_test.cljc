@@ -1,10 +1,11 @@
 (ns pam-audit.rules-test
-  (:require [clojure.test :refer [deftest is testing]]
-            [pam-audit.mock :as mock]
+  (:require #?(:cljs [cljs.test :refer-macros [deftest is testing]]
+               :default [clojure.test :refer [deftest is testing]])
+            [pam-audit.fixture :as fixture]
             [pam-audit.rules :as rules]))
 
-(def estate mock/estate-fixture)
-(def now mock/now-fixture)
+(def estate fixture/estate-fixture)
+(def now fixture/now-fixture)
 
 (deftest test-fixture-yields-exactly-five-findings
   (let [findings (rules/audit-users estate now)

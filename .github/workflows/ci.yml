@@ -1,6 +1,6 @@
 # GitHub Actions CI for pam-audit-clj.
-# Runs the clojure.test suite plus the end-to-end mock audit asserting
-# the exact five-findings contract, on every push and pull request.
+# Native Babashka gates cover the CLI and real local HTTP integration.
+# JVM and Node-targeted ClojureScript runners share the portable contract.
 
 name: CI
 
@@ -13,10 +13,19 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  native:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install ripgrep and check identity coherence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ripgrep
+          if rg 'github\.com/nurazhar[^d]|gitlab\.com/nurazhardotcom' .; then
+            echo "incoherent username found"
+            exit 1
+          fi
 
       - name: Install Babashka
         run: |
@@ -24,16 +33,69 @@ jobs:
           chmod +x install
           sudo ./install
 
-      - name: Run test suite
+      - name: Run native test suite
         run: bb test
 
       - name: Run audit demo (five-findings contract)
         run: bb audit-demo
 
+  shared-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+
+      - name: Install ripgrep and check identity coherence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ripgrep
+          if rg 'github\.com/nurazhar[^d]|gitlab\.com/nurazhardotcom' .; then
+            echo "incoherent username found"
+            exit 1
+          fi
+
+      - name: Install Clojure CLI
+        run: |
+          curl -fsSLO https://download.clojure.org/install/linux-install-1.12.6.1673.sh
+          chmod +x linux-install-1.12.6.1673.sh
+          sudo ./linux-install-1.12.6.1673.sh
+
+      - name: Show test runtime versions
+        run: |
+          java -version
+          clojure -Sdescribe
+          node --version
+
+      - name: Run portable JVM contract
+        run: clojure -M:test
+
+      - name: Compile portable ClojureScript contract for Node
+        run: clojure -M:test-cljs
+
+      - name: Run portable ClojureScript contract on Node
+        run: node target/cljs-tests.js
+
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install ripgrep and check identity coherence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ripgrep
+          if rg 'github\.com/nurazhar[^d]|gitlab\.com/nurazhardotcom' .; then
+            echo "incoherent username found"
+            exit 1
+          fi
 
       - name: Install clj-kondo
         run: |
@@ -56,6 +118,10 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ripgrep
+          if rg 'github\.com/nurazhar[^d]|gitlab\.com/nurazhardotcom' .; then
+            echo "incoherent username found"
+            exit 1
+          fi
           curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
           chmod +x install && sudo ./install
 

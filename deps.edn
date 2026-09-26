@@ -1,0 +1,10 @@
+{:paths ["src" "test"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}
+        org.clojure/clojurescript {:mvn/version "1.12.145"}}
+ :aliases
+ {:test {:main-opts ["-m" "pam-audit.test-runner"]}
+  :test-cljs {:main-opts ["-m" "cljs.main"
+                          "--target" "node"
+                          "--output-to" "target/cljs-tests.js"
+                          "--output-dir" "target/cljs-out"
+                          "--compile" "pam-audit.cljs-test-runner"]}}}

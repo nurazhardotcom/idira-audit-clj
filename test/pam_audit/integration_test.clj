@@ -1,7 +1,11 @@
 (ns pam-audit.integration-test
   (:require [clojure.test :refer [deftest is testing use-fixtures]]
             [pam-audit.auth :as auth]
+            [pam-audit.fixture :as fixture]
+            [pam-audit.idsvc :as idsvc]
+            [pam-audit.idsvc-core :as idsvc-core]
             [pam-audit.mock :as mock]
+            [pam-audit.normalize :as normalize]
             [pam-audit.rules :as rules]
             [pam-audit.scim :as scim]))
 
@@ -29,3 +33,18 @@
       (let [findings (rules/audit-users estate mock/now-fixture)]
         (is (= 5 (count findings)))
         (is (= 2 (count (filter #(= :high (:severity %)) findings))))))))
+
+(deftest test-native-public-compatibility-aliases
+  (let [inventory {:humans [{:name "alice"}]
+                   :non_human_identities [{:name "worker" :sponsor "alice"}]}]
+    (testing "fixture aliases"
+      (is (= fixture/now-fixture mock/now-fixture))
+      (is (= fixture/estate-fixture mock/estate-fixture)))
+    (testing "SCIM normalizer aliases"
+      (is (= normalize/normalize-user scim/normalize-user))
+      (is (= normalize/normalize-group scim/normalize-group))
+      (is (= normalize/normalize-token scim/normalize-token))
+      (is (= normalize/normalize-policy scim/normalize-policy)))
+    (testing "idsvc translation alias"
+      (is (= (idsvc-core/->estate inventory)
+             (idsvc/->estate inventory))))))

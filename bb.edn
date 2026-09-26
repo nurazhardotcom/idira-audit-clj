@@ -1,12 +1,14 @@
 {:paths ["src" "test"]
  :tasks
- {test {:doc "Run all clojure.test suites (rules, policy, HTTP integration)"
+ {test {:doc "Run native and portable clojure.test suites"
         :task (do (require 'pam-audit.rules-test
                            'pam-audit.policy-test
+                           'pam-audit.portable-test
                            'pam-audit.integration-test)
                   (let [{:keys [fail error]}
                         (clojure.test/run-tests 'pam-audit.rules-test
                                                 'pam-audit.policy-test
+                                                'pam-audit.portable-test
                                                 'pam-audit.integration-test)]
                     (System/exit (if (zero? (+ fail error)) 0 1))))}
   audit-demo {:doc "Audit the built-in mock PAM API (deterministic EDN)"

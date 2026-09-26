@@ -1,11 +1,12 @@
 (ns pam-audit.policy-test
-  (:require [clojure.test :refer [deftest is]]
-            [pam-audit.mock :as mock]
+  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
+               :default [clojure.test :refer [deftest is]])
+            [pam-audit.fixture :as fixture]
             [pam-audit.policy :as policy]))
 
 (def users-by-id
-  (into {} (map (juxt :id identity) (:users mock/estate-fixture))))
-(def pol (:policies mock/estate-fixture))
+  (into {} (map (juxt :id identity) (:users fixture/estate-fixture))))
+(def pol (:policies fixture/estate-fixture))
 (def priv-ids #{"admin-active" "svc-orphan" "svc-dormant" "svc-unvaulted"})
 
 (deftest test-privileged-without-adaptive-mfa-has-one-gap
@@ -29,7 +30,7 @@
 
 (deftest test-evaluate-all-splits-population
   (let [{:keys [compliant non-compliant]}
-        (policy/evaluate-all (:users mock/estate-fixture) pol priv-ids)
+        (policy/evaluate-all (:users fixture/estate-fixture) pol priv-ids)
         bad-ids (set (map :user non-compliant))]
     (is (= 1 (count compliant)))
     (is (= "ciso" (:user (first compliant))))

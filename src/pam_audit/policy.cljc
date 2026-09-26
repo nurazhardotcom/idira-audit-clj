@@ -7,8 +7,10 @@
   [:none :password :mfa :adaptive-mfa :phishing-resistant])
 
 (defn- rank [a]
-  (let [i (.indexOf assurance-rank (keyword a))]
-    (if (neg? i) 0 i)))
+  (or (first (keep-indexed (fn [index level]
+                             (when (= level (keyword a)) index))
+                           assurance-rank))
+      0))
 
 (defn meets-assurance?
   "True when the user's assurance level meets the policy minimum."

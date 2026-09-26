@@ -5,89 +5,22 @@
    (see estate-fixture), so tests and demos assert exact counts."
   (:require [cheshire.core :as json]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [pam-audit.fixture :as fixture]
+            [pam-audit.wire :as wire])
   (:import [java.net ServerSocket]
            [java.nio.charset StandardCharsets]))
 
-;; Fixed clock for determinism: 2026-09-05T00:00:00Z ≈ 1788460800
-(def now-fixture 1788460800)
-(def ^:private day 86400)
-(defn- days-ago [n] (- now-fixture (* n day)))
-
-;; ---------- deterministic estate (normalized shape) ----------
-
-(def estate-fixture
-  {:users
-   [{:id "ciso" :kind :human :active true :owner-id nil
-     :mfa-enrolled true :assurance :adaptive-mfa
-     :vault-managed true :device-compliant true
-     :last-login (days-ago 1)}
-    {:id "admin-active" :kind :human :active true :owner-id "ciso"
-     :mfa-enrolled true :assurance :mfa
-     :vault-managed true :device-compliant true
-     :last-login (days-ago 2)}
-    {:id "svc-orphan" :kind :service :active true :owner-id nil
-     :mfa-enrolled true :assurance :mfa
-     :vault-managed true :device-compliant true
-     :last-login (days-ago 2)}
-    {:id "svc-dormant" :kind :service :active true :owner-id "ciso"
-     :mfa-enrolled true :assurance :mfa
-     :vault-managed true :device-compliant true
-     :last-login (days-ago 120)}
-    {:id "svc-unvaulted" :kind :service :active true :owner-id "ciso"
-     :mfa-enrolled true :assurance :mfa
-     :vault-managed false :device-compliant true
-     :last-login (days-ago 3)}
-    {:id "analyst-nomfa" :kind :human :active true :owner-id nil
-     :mfa-enrolled false :assurance :none
-     :vault-managed true :device-compliant false
-     :last-login (days-ago 1)}]
-   :groups
-   [{:id "vault-admins" :privileged true
-     :members ["admin-active" "svc-orphan" "svc-dormant" "svc-unvaulted"]}
-    {:id "analysts" :privileged false
-     :members ["analyst-nomfa" "ciso"]}]
-   :tokens
-   [{:id "tok-stale" :owner-id "svc-dormant"
-     :created (days-ago 200) :revoked false}
-    {:id "tok-fresh" :owner-id "admin-active"
-     :created (days-ago 2) :revoked false}]
-   :policies
-   {:require-mfa true
-    :min-assurance :mfa
-    :require-adaptive-mfa true
-    :require-device-posture true
-    :max-inactive-days 90
-    :privileged-token-ttl-days 180
-    :require-vaulting true}})
-
-;; ---------- wire shape (camelCase, SCIM-ish) ----------
-
-(defn- user->wire [u]
-  {:id (:id u) :userName (:id u) :kind (name (:kind u))
-   :active (:active u) :ownerId (:owner-id u)
-   :mfaEnrolled (:mfa-enrolled u) :assurance (name (:assurance u))
-   :vaultManaged (:vault-managed u) :deviceCompliant (:device-compliant u)
-   :lastLogin (:last-login u)})
-
-(defn- token->wire [t]
-  {:id (:id t) :ownerId (:owner-id t)
-   :created (:created t) :revoked (:revoked t)})
-
-(defn- policy->wire [p]
-  {:requireMfa (:require-mfa p) :minAssurance (name (:min-assurance p))
-   :requireAdaptiveMfa (:require-adaptive-mfa p)
-   :requireDevicePosture (:require-device-posture p)
-   :maxInactiveDays (:max-inactive-days p)
-   :privilegedTokenTtlDays (:privileged-token-ttl-days p)
-   :requireVaulting (:require-vaulting p)})
+;; Compatibility vars retained for existing native callers.
+(def now-fixture fixture/now-fixture)
+(def estate-fixture fixture/estate-fixture)
 
 (defn- routes []
   {"/oauth2/token"
    {:status 200 :body {:access_token "mock-token-123"
                        :token_type "Bearer" :expires_in 3600}}
    "/scim/v2/Users"
-   {:status 200 :body {:Resources (mapv user->wire (:users estate-fixture))
+   {:status 200 :body {:Resources (mapv wire/user->wire (:users estate-fixture))
                        :totalResults (count (:users estate-fixture))}}
    "/scim/v2/Groups"
    {:status 200 :body {:Resources (mapv (fn [g] {:id (:id g)
@@ -96,10 +29,10 @@
                                         (:groups estate-fixture))
                        :totalResults (count (:groups estate-fixture))}}
    "/api/v1/tokens"
-   {:status 200 :body {:Resources (mapv token->wire (:tokens estate-fixture))
+   {:status 200 :body {:Resources (mapv wire/token->wire (:tokens estate-fixture))
                        :totalResults (count (:tokens estate-fixture))}}
    "/api/v1/policies/mfa"
-   {:status 200 :body {:policy (policy->wire (:policies estate-fixture))}}})
+   {:status 200 :body {:policy (wire/policy->wire (:policies estate-fixture))}}})
 
 ;; ---------- minimal HTTP/1.1 stub over ServerSocket ----------
 

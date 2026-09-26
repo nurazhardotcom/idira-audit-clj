@@ -4,7 +4,8 @@
    shapes are normalized to the maps pam-audit.rules expects — the
    normalization fns are pure and unit-tested without HTTP."
   (:require [babashka.http-client :as http]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [pam-audit.normalize :as normalize]))
 
 (defn get-json
   "GET url with Bearer token; returns parsed body (keyword keys)."
@@ -18,40 +19,13 @@
       (throw (ex-info (str "GET " path " failed")
                       {:status (:status resp) :body (:body resp)})))))
 
-;; ---------- normalization (pure) ----------
-
-(defn normalize-user [u]
-  {:id (:userName u (:id u))
-   :kind (keyword (or (:kind u) "human"))
-   :active (if (contains? u :active) (boolean (:active u)) true)
-   :owner-id (:ownerId u (:owner-id u))
-   :mfa-enrolled (boolean (:mfaEnrolled u (:mfa-enrolled u)))
-   :assurance (keyword (or (:assurance u) "none"))
-   :vault-managed (boolean (:vaultManaged u (:vault-managed u)))
-   :device-compliant (boolean (:deviceCompliant u (:device-compliant u)))
-   :last-login (:lastLogin u (:last-login u))})
-
-(defn normalize-group [g]
-  {:id (:id g)
-   :privileged (boolean (:privileged g))
-   :members (vec (:members g))})
-
-(defn normalize-token [t]
-  {:id (:id t)
-   :owner-id (:ownerId t (:owner-id t))
-   :created (:created t)
-   :revoked (boolean (:revoked t))})
-
-(defn normalize-policy
+;; Compatibility vars retained for existing native callers.
+(def normalize-user normalize/normalize-user)
+(def normalize-group normalize/normalize-group)
+(def normalize-token normalize/normalize-token)
+(def normalize-policy
   "Accept both wire (camelCase) and local (kebab-case) shapes."
-  [p]
-  {:require-mfa (boolean (:requireMfa p (:require-mfa p)))
-   :min-assurance (keyword (or (:minAssurance p (:min-assurance p)) "none"))
-   :require-adaptive-mfa (boolean (:requireAdaptiveMfa p (:require-adaptive-mfa p)))
-   :require-device-posture (boolean (:requireDevicePosture p (:require-device-posture p)))
-   :max-inactive-days (or (:maxInactiveDays p (:max-inactive-days p)) 90)
-   :privileged-token-ttl-days (or (:privilegedTokenTtlDays p (:privileged-token-ttl-days p)) 180)
-   :require-vaulting (boolean (:requireVaulting p (:require-vaulting p)))})
+  normalize/normalize-policy)
 
 (defn fetch-estate
   "Pull the whole estate from a SCIM-compatible API. Returns
